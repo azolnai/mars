@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
-    <title>Mars | DevZolnai </title>
+    <title>Visualize data on Mars | Sample | ArcGIS API for JavaScript 4.18</title>
     <style>
       html,
       body,
@@ -34,18 +34,18 @@ require([
             "NASA, ESA, HRSC, Goddard Space Flight Center, USGS Astrogeology Science Center, Esri"
         });
 
-        const marsImageryCTX = new TileLayer({
+        const marsImagery = new TileLayer({
           url:
-            "https://astro.arcgis.com/arcgis/rest/services/OnMars/CTX/MapServer",
-            title: "Imagery CTX",
+            "https://astro.arcgis.com/arcgis/rest/services/OnMars/MDIM/MapServer",
+            title: "Imagery",
           copyright: "USGS Astrogeology Science Center, NASA, JPL, Esri"
         });
 
-       const map = new Map({
+        const map = new Map({
           ground: {
             layers: [marsElevation]
           },
-          layers: [marsImageryCTX],
+          layers: [marsImagery]
         });
 
         const view = new SceneView({
@@ -58,21 +58,21 @@ require([
           },
           camera: {
             position: {
-              x: 77.5000,
-              y: 18.5000,
-              z: 8000.000,
+              x: 27.63423,
+              y: -6.34466,
+              z: 1281525.766,
               spatialReference: 104971
             },
-            heading: -90.00,
+            heading: 332.28,
             tilt: 37.12
           }
         });
 
         const cratersLayer = new FeatureLayer({
           url:
-            "https://services.arcgis.com/P3ePLMYs2RVChkJx/ArcGIS/rest/services/Mars_Nomenclature_Craters/FeatureServer",
+            "https://services.arcgis.com/P3ePLMYs2RVChkJx/ArcGIS/rest/services/Mars_Nomenclature_Mountains/FeatureServer",
           definitionExpression: "type = 'Crater, craters'",
-          title: "Mars Craters",
+          title: "Craters",
           renderer: {
             type: "simple",
             symbol: {
@@ -139,71 +139,6 @@ require([
         });
 
         map.add(shadedReliefLayer);
-
-        const marsImageryMDIM = new TileLayer({
-          url:
-            "https://astro.arcgis.com/arcgis/rest/services/OnMars/MDIM/MapServer",
-            title: "Imagery MDIM",
-          copyright: "USGS Astrogeology Science Center, NASA, JPL, Esri",
-          visible: false
-        });
-
-        map.add(marsImageryMDIM);
-
-        const marsImageryHiRISE = new TileLayer({
-          url:
-            "https://astro.arcgis.com/arcgis/rest/services/OnMars/HiRISE/MapServer",
-            title: "Imagery HiRISE",
-          copyright: "USGS Astrogeology Science Center, NASA, JPL, Esri",
-          visible: false
-        });
-
-        map.add(marsImageryHiRISE);
-
-        const jezeroNiliTiles = new TileLayer({
-          url:
-            "https://tiles.arcgis.com/tiles/v01gqwM5QqNysAAi/arcgis/rest/services/Nili_CTX_Mosaic_Beta01_Feb2018_MTM_tif_NEWTILING5/MapServer",
-            title: "Jezero Nili Tiles",
-          copyright: "Geologic Map of Jezero Crater and the Nili Planum Region, Mars, 1:75,000. Sun and Stack (2020)",
-          visible: false
-        });
-
-        map.add(jezeroNiliTiles);
-
-        const JezeroGeolUnits = new TileLayer({
-          url:
-            "https://tiles.arcgis.com/tiles/v01gqwM5QqNysAAi/arcgis/rest/services/JezeroGeoUnitsAnno_WebTile2/MapServer",
-            title: "Jezero Geol. Units",
-          copyright: "Geologic Map of Jezero Crater and the Nili Planum Region, Mars, 1:75,000. Sun and Stack (2020)",
-          visible: false
-        });
-
-        map.add(JezeroGeolUnits);
-
-        const JezeroGeology = new FeatureLayer({
-          url:
-            "https://services.arcgis.com/v01gqwM5QqNysAAi/arcgis/rest/services/Jezero_FeatureServiceFromPro/FeatureServer",
-            definitionExpression: "name = '5'",
-            title: "Jezero Geology",
-          copyright: "Geologic Map of Jezero Crater and the Nili Planum Region, Mars, 1:75,000. Sun and Stack (2020)",
-            title: "Jezero Geology",
-             renderer: {
-              type: "simple",
-               symbol: {
-                type: "line",
-                 symbolLayers: [
-                {
-                  outline: {
-                    color: [0, 0, 0, 0.4],
-                    size: 2
-                  }
-                }
-              ]
-            }
-          },          visible: false
-        });
-
-        map.add(JezeroGeology);
 
         const layerList = new LayerList({
           view
