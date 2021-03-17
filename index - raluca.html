@@ -7,39 +7,105 @@
     <style>
       html,
       body,
+
       #viewDiv {
         padding: 0;
         margin: 0;
         height: 100%;
         width: 100%;
       }
-      #uploadForm {
+
+      #container {
         position: absolute;
-        font-size: 0.8em;
-        font-family: monospace, sans-serif;
-        top: 15px;
-        left: 60px;
-        background: #242424;
-        padding: 6px;
-        color: #69dcff;
-      }    
-    </style>
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 1em;
+        box-sizing: border-box;
+      }
+
+      #introDiv {
+        position: relative;
+        width: 60%;
+        max-width: 700px;
+        min-height: 350px;
+        flex: 1;
+        background-color: #fff;
+        padding: 3em;
+        box-sizing: border-box;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+      }
+
+      #introDiv h1 {
+        margin-top: 0;
+        margin-bottom: 1em;
+      }
+
+      #introDiv p {
+        line-height: 1.5em;
+      }
+
+      #container a:hover {
+        color: white;
+        background: rgb(2, 105, 161);
+      }
+
+      #container a {
+        color: rgb(2, 105, 161);
+        text-decoration: none;
+        font-weight: bold;
+      }
+
+      button.esri-icon-close {
+        position: absolute;
+        top: 1.5em;
+        right: 1.5em;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+      }
+
+      #about {
+        color: white;
+        box-shadow: none;
+        cursor: pointer;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      #start-globe {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+        }
+
+</style>
 
     <link rel="stylesheet" href="https://js.arcgis.com/4.18/esri/themes/light/main.css" />
     <script src="https://js.arcgis.com/4.18/"></script>
 
     <script>
-      require([
-        "esri/config",
+require([
+        "esri/esriConfig",
         "esri/Map",
         "esri/views/SceneView",
         "esri/layers/ElevationLayer",
         "esri/layers/TileLayer",
         "esri/layers/FeatureLayer",
-        "esri/widgets/LayerList"
-      ], function (esriConfig, Map, SceneView, ElevationLayer, TileLayer, FeatureLayer, LayerList) {
+        "esri/widgets/LayerList",
+        "esri/Graphic",
+        "esri/Geometry/Point",
+        "esri/core/watchUtils"
+      ], function (esriConfig, Map, SceneView, ElevationLayer, TileLayer, FeatureLayer, LayerList, Graphic, Point, watchUtils) {
 
-        esriConfig.apiKey = "AAPK241a4d654f654b78b375d8259b6c98b1YXZaHuI6I_71tr8-9pB0GNlJbxOQxTaK5kM7cxZAGooexraTh8txdzY8tnmPl6pn";        
+        esriConfig.apiKey = "AAPKf6ee9e6e727240e0a03cab46b71a760drZn_p6rMQF3cUUli_rnM1yQ-wLfg6u35jKee8cBOIVgbkxsVGcc9MqIoSkGL63na";        
 
         const marsElevation = new ElevationLayer({
           url:
@@ -230,71 +296,77 @@
             position: "top-right"
           });    
 
-        const uploadForm = document.getElementById("uploadForm");
+      document.getElementById("close-about").addEventListener("click", closeMenu);
 
-        uploadForm.addEventListener("change", function (event) {
-          const filePath = event.target.value.toLowerCase();
-          //only accept .zip files
-          if (filePath.indexOf(".zip") !== -1) {
-              generateFeatureCollection(uploadForm)
-          } 
-        });     
-        function generateFeatureCollection(uploadFormNode) {
-          const generateRequestParams = {
-            filetype: "shapefile",
-              publishParameters: JSON.stringify({
-              targetSR: view.spatialReference
-            }),
-            f: "json"
-          };
-          request("https://www.arcgis.com/sharing/rest/content/features/generate", {
-            query: generateRequestParams,
-            body: uploadFormNode,
-            responseType: "json"
-          }).then(function (response) {
-            addShapefileToMap(response.data.featureCollection);
-            console.log(response)
-            })
-          }
-        function createFeaturesGraphics(layer) {
-          console.log(layer)
-          return layer.featureSet.features.map(function (feature) {
-            return Graphic.fromJSON(feature);
+      document.getElementById("start-globe").addEventListener("click", function () {
+        closeMenu();
+        view.when(function () {
+          watchUtils.whenFalseOnce(view, "updating", rotate);
+        });
+      });
+
+      document.getElementById("container").addEventListener("click", function (e) {
+        if (e.target.id === "container") {
+          closeMenu();
+          view.when(function () {
+            watchUtils.whenFalseOnce(view, "updating", rotate);
           });
         }
-        function createFeatureLayerFromGraphic(graphics) {
-          return new FeatureLayer({
-            objectIdField: "FID",
-            source: graphics,
-            title: 'User uploaded shapefile'
-          });
-        }  
-        function addShapefileToMap(featureCollection) {
-          let sourceGraphics = [];
-          const collectionLayers = featureCollection.layers;
-          const mapLayers = collectionLayers.map(function (layer) {
-            const graphics = createFeaturesGraphics(layer);
-            sourceGraphics = sourceGraphics.concat(graphics);
-            const featureLayer = createFeatureLayerFromGraphic(graphics)
-            return featureLayer;
-          });
-          map.addMany(mapLayers);
-          view.goTo({target: sourceGraphics, tilt: 40});
-        }           
-
       });
+
+      function closeMenu() {
+        document.getElementById("container").style.display = "none";
+        view.container.style.filter = "blur(0px)";
+      }
+
+      let intro = true;
+      document.getElementById("about").addEventListener("click", function () {
+        document.getElementById("container").style.display = "flex";
+        view.container.style.filter = "blur(10px)";
+        if (intro) {
+          document.getElementById("show-about").classList.remove("hidden");
+          document.getElementById("show-intro").classList.add("hidden");
+          intro = false;
+        }
+      });
+
+      view.ui.add("about", "bottom-left");
+
+      function rotate() {
+        if (!view.interacting) {
+          const camera = view.camera.clone();
+          camera.position.longitude -= 0.2;
+          view.goTo(camera, { animate: false });
+          requestAnimationFrame(rotate);
+        }
+      }
+    });
+
     </script>
   </head>
 
   <body>
-    <div id="viewDiv"></div>
-    <form enctype="multipart/form-data" method="post" id="uploadForm">
-      <div class="field">
-          <label class="file-upload">
-            <span><strong>Upload shapefile .zip</strong></span>
-            <input type="file" name="file" id="inFile" />
-          </label>
+
+    <div id="viewDiv">
+      <div id="about">About this map</div>
+    </div>
+    <div id="container">
+      <div id="introDiv">
+        <h1>#MARS2021</h1>
+        <div id="show-intro">
+          <p> Where has NASA Perseverance Rover landed on Mars? On the Jezero Crater! Turn on the HiRISE imagery and examine the deltaic landforms, thought to possibly hold signs of early organic matter.
+            Rivers are thought to have flowed on Mars' surface 3+B years ago, before it was degased into the current red desert planet.
+          </p>
+          <button id="start-globe">Go to globe</button>
         </div>
-  </form>    
-</body>
+        <div id="show-about" class="hidden">
+            <button id="close-about" class="esri-icon-close"></button>
+          <p>This web scene was insprired by "Explore Mars with GIS", <a href="https://explore-mars.herokuapp.com/" target="_blank"></a>the app</p>a> and <a href="https://www.esri.com/arcgis-blog/products/js-api-arcgis/3d-gis/explore-mars-with-gis/" target="_blank"></a>the story</a>, HT <a href="https://twitter.com/PhilipMielke" target="_blank"></a>@PhilipMielke</a>.
+          <br>See also this story map <a href="https://arcg.is/1KmS5S0" target="_blank">Mars revisited</a> and this blog <a href="https://blog.zolnai.ca/2021/02/adventures-in-ar-augmented-reality.html" target="_blank">Adventures in AR (augemnted reality)</a> for background and more 3D viz.
+          <br>The HTML code benefited from <a href="https://learn.arcgis.com/en/projects/build-a-3d-globe-app-with-the-arcgis-api-for-javascript/" target="_blank">Build a 3D globe app with the ArcGIS API for JavaScript</a>, and from <a href="https://www.esri.com/arcgis-blog/products/js-api-arcgis/3d-gis/interactive-3d-globe/" target="_blank">An interactive 3D globe of extremes - a DIY mapping guide</a>.</p>
+        </div>
+      </div>
+    </div>
+
+  </body>
 </html>

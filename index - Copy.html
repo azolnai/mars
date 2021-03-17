@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
-    <title>Mars Jezero Crater | DevZolnai </title>
+    <title>Mars | DevZolnai </title>
     <style>
       html,
       body,
@@ -13,34 +13,20 @@
         height: 100%;
         width: 100%;
       }
-      #uploadForm {
-        position: absolute;
-        font-size: 0.8em;
-        font-family: monospace, sans-serif;
-        top: 15px;
-        left: 60px;
-        background: #242424;
-        padding: 6px;
-        color: #69dcff;
-      }    
     </style>
 
     <link rel="stylesheet" href="https://js.arcgis.com/4.18/esri/themes/light/main.css" />
     <script src="https://js.arcgis.com/4.18/"></script>
 
     <script>
-      require([
-        "esri/config",
+require([
         "esri/Map",
         "esri/views/SceneView",
         "esri/layers/ElevationLayer",
         "esri/layers/TileLayer",
         "esri/layers/FeatureLayer",
         "esri/widgets/LayerList"
-      ], function (esriConfig, Map, SceneView, ElevationLayer, TileLayer, FeatureLayer, LayerList) {
-
-        esriConfig.apiKey = "AAPK241a4d654f654b78b375d8259b6c98b1YXZaHuI6I_71tr8-9pB0GNlJbxOQxTaK5kM7cxZAGooexraTh8txdzY8tnmPl6pn";        
-
+      ], function (Map, SceneView, ElevationLayer, TileLayer, FeatureLayer, LayerList) {
         const marsElevation = new ElevationLayer({
           url:
             "https://astro.arcgis.com/arcgis/rest/services/OnMars/MDEM200M/ImageServer",
@@ -226,61 +212,7 @@
           view
         });
 
-        view.ui.add(layerList, {
-            position: "top-right"
-          });    
-
-        const uploadForm = document.getElementById("uploadForm");
-
-        uploadForm.addEventListener("change", function (event) {
-          const filePath = event.target.value.toLowerCase();
-          //only accept .zip files
-          if (filePath.indexOf(".zip") !== -1) {
-              generateFeatureCollection(uploadForm)
-          } 
-        });     
-        function generateFeatureCollection(uploadFormNode) {
-          const generateRequestParams = {
-            filetype: "shapefile",
-              publishParameters: JSON.stringify({
-              targetSR: view.spatialReference
-            }),
-            f: "json"
-          };
-          request("https://www.arcgis.com/sharing/rest/content/features/generate", {
-            query: generateRequestParams,
-            body: uploadFormNode,
-            responseType: "json"
-          }).then(function (response) {
-            addShapefileToMap(response.data.featureCollection);
-            console.log(response)
-            })
-          }
-        function createFeaturesGraphics(layer) {
-          console.log(layer)
-          return layer.featureSet.features.map(function (feature) {
-            return Graphic.fromJSON(feature);
-          });
-        }
-        function createFeatureLayerFromGraphic(graphics) {
-          return new FeatureLayer({
-            objectIdField: "FID",
-            source: graphics,
-            title: 'User uploaded shapefile'
-          });
-        }  
-        function addShapefileToMap(featureCollection) {
-          let sourceGraphics = [];
-          const collectionLayers = featureCollection.layers;
-          const mapLayers = collectionLayers.map(function (layer) {
-            const graphics = createFeaturesGraphics(layer);
-            sourceGraphics = sourceGraphics.concat(graphics);
-            const featureLayer = createFeatureLayerFromGraphic(graphics)
-            return featureLayer;
-          });
-          map.addMany(mapLayers);
-          view.goTo({target: sourceGraphics, tilt: 40});
-        }           
+        view.ui.add(layerList, "top-right");
 
       });
     </script>
@@ -288,13 +220,5 @@
 
   <body>
     <div id="viewDiv"></div>
-    <form enctype="multipart/form-data" method="post" id="uploadForm">
-      <div class="field">
-          <label class="file-upload">
-            <span><strong>Upload shapefile .zip</strong></span>
-            <input type="file" name="file" id="inFile" />
-          </label>
-        </div>
-  </form>    
-</body>
+  </body>
 </html>
