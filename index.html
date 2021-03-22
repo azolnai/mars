@@ -12,16 +12,6 @@
         margin: 0;
         height: 100%;
         width: 100%;
-      }
-      #uploadForm {
-        position: absolute;
-        font-size: 0.8em;
-        font-family: monospace, sans-serif;
-        top: 15px;
-        left: 60px;
-        background: #242424;
-        padding: 6px;
-        color: #69dcff;
       }    
     </style>
 
@@ -30,22 +20,23 @@
 
     <script>
       require([
-        "esri/config",
         "esri/Map",
+        "esri/config",
+        "esri/WebMap",
         "esri/views/SceneView",
         "esri/layers/ElevationLayer",
         "esri/layers/TileLayer",
         "esri/layers/FeatureLayer",
-        "esri/widgets/LayerList"
-      ], function (esriConfig, Map, SceneView, ElevationLayer, TileLayer, FeatureLayer, LayerList) {
+        "esri/layers/GroupLayer",
+        "esri/widgets/LayerList",
+        "esri/widgets/Legend"
+      ], function (Map, esriConfig, WebMap, SceneView, ElevationLayer, TileLayer, FeatureLayer, GroupLayer, LayerList, Legend) {
 
-        esriConfig.apiKey = "AAPK241a4d654f654b78b375d8259b6c98b1YXZaHuI6I_71tr8-9pB0GNlJbxOQxTaK5kM7cxZAGooexraTh8txdzY8tnmPl6pn";        
+        esriConfig.apiKey = "AAPK241a4d654f654b78b375d8259b6c98b1YXZaHuI6I_71tr8-9pB0GNlJbxOQxTaK5kM7cxZAGooexraTh8txdzY8tnmPl6pn";
 
         const marsElevation = new ElevationLayer({
-          url:
-            "https://astro.arcgis.com/arcgis/rest/services/OnMars/MDEM200M/ImageServer",
-          copyright:
-            "NASA, ESA, HRSC, Goddard Space Flight Center, USGS Astrogeology Science Center, Esri"
+          url: "https://astro.arcgis.com/arcgis/rest/services/OnMars/MDEM200M/ImageServer",
+          copyright: "NASA, ESA, HRSC, Goddard Space Flight Center, USGS Astrogeology Science Center, Esri"
         });
 
         const marsImageryCTX = new TileLayer({
@@ -55,7 +46,12 @@
           copyright: "USGS Astrogeology Science Center, NASA, JPL, Esri"
         });
 
-       const map = new Map({
+        const webmap = new WebMap({
+            title: "Jezero Crater & Nili Planum",
+          copyright: "Geologic Map of Jezero Crater and the Nili Planum Region, Mars, 1:75,000. Sun and Stack (2020)",
+          portalItem: {
+          id: "137eebf467514082a27c03c88b5ffe58"
+          },
           ground: {
             layers: [marsElevation]
           },
@@ -63,20 +59,16 @@
         });
 
         const view = new SceneView({
-          map: map,
+            map: webmap, 
           container: "viewDiv",
           qualityProfile: "high",
-          // setting the spatial reference for Mars_2000 coordinate system
-          spatialReference: {
-            wkid: 104971
-          },
+          spatialReference: { wkid: 104971 },
           camera: {
             position: {
               x: 77.5000,
               y: 18.5000,
               z: 8000.000,
-              spatialReference: 104971
-            },
+              spatialReference: 104971 },
             heading: -90.00,
             tilt: 37.12
           }
@@ -142,7 +134,7 @@
           ]
         });
 
-        map.add(cratersLayer);
+        webmap.add(cratersLayer);
 
         const shadedReliefLayer = new TileLayer({
           url:
@@ -152,7 +144,7 @@
           visible: false
         });
 
-        map.add(shadedReliefLayer);
+        webmap.add(shadedReliefLayer);
 
         const marsImageryMDIM = new TileLayer({
           url:
@@ -162,7 +154,7 @@
           visible: false
         });
 
-        map.add(marsImageryMDIM);
+        webmap.add(marsImageryMDIM);
 
         const marsImageryHiRISE = new TileLayer({
           url:
@@ -172,129 +164,25 @@
           visible: false
         });
 
-        map.add(marsImageryHiRISE);
-
-        const jezeroNiliTiles = new TileLayer({
-          url:
-            "https://tiles.arcgis.com/tiles/v01gqwM5QqNysAAi/arcgis/rest/services/Nili_CTX_Mosaic_Beta01_Feb2018_MTM_tif_NEWTILING5/MapServer",
-            title: "Jezero Nili Tiles",
-          copyright: "Geologic Map of Jezero Crater and the Nili Planum Region, Mars, 1:75,000. Sun and Stack (2020)",
-          visible: false
-        });
-
-        map.add(jezeroNiliTiles);
-
-        const JezeroGeolUnits = new TileLayer({
-          url:
-            "https://tiles.arcgis.com/tiles/v01gqwM5QqNysAAi/arcgis/rest/services/JezeroGeoUnitsAnno_WebTile2/MapServer",
-            title: "Jezero Geol. Units",
-          copyright: "Geologic Map of Jezero Crater and the Nili Planum Region, Mars, 1:75,000. Sun and Stack (2020)",
-          visible: false
-        });
-
-        map.add(JezeroGeolUnits);
-
-        const JezeroGeology = new FeatureLayer({
-          url:
-            "https://services.arcgis.com/v01gqwM5QqNysAAi/arcgis/rest/services/Jezero_FeatureServiceFromPro/FeatureServer",
-            definitionExpression: "name = 'Geologic Contacts'",
-            title: "Geologic Contacts",
-          copyright: "Geologic Map of Jezero Crater and the Nili Planum Region, Mars, 1:75,000. Sun and Stack (2020)",
-            title: "Geologic Contacts",
-            renderer: {
-            type: "simple",
-            symbol: {
-              type: "esriSFS",
-              symbolLayers: [
-                {
-                  type: "esrSFS",
-                  material: { color: [130, 130, 130, 0] },
-                  outline: {
-                    color: [0, 0, 0, 255],
-                    size: 2
-                  }
-                }
-              ]
-            }
-          },
-          visible: false
-        });
-
-        map.add(JezeroGeology);
-
+        webmap.add(marsImageryHiRISE);
+              
         const layerList = new LayerList({
           view
         });
 
-        view.ui.add(layerList, {
-            position: "top-right"
-          });    
-
-        const uploadForm = document.getElementById("uploadForm");
-
-        uploadForm.addEventListener("change", function (event) {
-          const filePath = event.target.value.toLowerCase();
-          //only accept .zip files
-          if (filePath.indexOf(".zip") !== -1) {
-              generateFeatureCollection(uploadForm)
-          } 
-        });     
-        function generateFeatureCollection(uploadFormNode) {
-          const generateRequestParams = {
-            filetype: "shapefile",
-              publishParameters: JSON.stringify({
-              targetSR: view.spatialReference
-            }),
-            f: "json"
-          };
-          request("https://www.arcgis.com/sharing/rest/content/features/generate", {
-            query: generateRequestParams,
-            body: uploadFormNode,
-            responseType: "json"
-          }).then(function (response) {
-            addShapefileToMap(response.data.featureCollection);
-            console.log(response)
-            })
-          }
-        function createFeaturesGraphics(layer) {
-          console.log(layer)
-          return layer.featureSet.features.map(function (feature) {
-            return Graphic.fromJSON(feature);
+        view.ui.add(layerList, "top-right");
           });
-        }
-        function createFeatureLayerFromGraphic(graphics) {
-          return new FeatureLayer({
-            objectIdField: "FID",
-            source: graphics,
-            title: 'User uploaded shapefile'
-          });
-        }  
-        function addShapefileToMap(featureCollection) {
-          let sourceGraphics = [];
-          const collectionLayers = featureCollection.layers;
-          const mapLayers = collectionLayers.map(function (layer) {
-            const graphics = createFeaturesGraphics(layer);
-            sourceGraphics = sourceGraphics.concat(graphics);
-            const featureLayer = createFeatureLayerFromGraphic(graphics)
-            return featureLayer;
-          });
-          map.addMany(mapLayers);
-          view.goTo({target: sourceGraphics, tilt: 40});
-        }           
 
-      });
+        const legend = new Legend ({
+            view
+        });
+
+      view.ui.add(legend, "bottom-left");
+
     </script>
   </head>
 
   <body>
     <div id="viewDiv"></div>
-    <form enctype="multipart/form-data" method="post" id="uploadForm">
-      <div class="field">
-          <label class="file-upload">
-            <span><strong>Upload shapefile .zip</strong></span>
-            <input type="file" name="file" id="inFile" />
-          </label>
-        </div>
-  </form>    
-</body>
+  </body>
 </html>
